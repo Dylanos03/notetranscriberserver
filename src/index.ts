@@ -12,7 +12,7 @@ const port = process.env.PORT || 8080;
 app.use(express.json());
 
 app.get("/", (_req: Request, res: Response) => {
-  res.send("Hello from TypeScript + Express!");
+  res.send("NoteTranscriber Up and Running");
 });
 
 // Transcribe endpoint

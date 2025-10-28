@@ -2,11 +2,6 @@ import { Request, Response } from "express";
 import OpenAI from "openai";
 import { Client } from "@notionhq/client";
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 // Prompt for GPT-4o-mini to polish transcriptions
 const POLISHING_PROMPT = `You are a text editor that polishes voice transcriptions. Your task is to:
 1. Remove filler words (um, uh, like, you know, etc.)
@@ -56,6 +51,11 @@ export const createNote = async (req: Request, res: Response) => {
         message: "OpenAI API key is not configured",
       });
     }
+
+    // Initialize OpenAI client
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     console.log("Polishing transcription with GPT-4o-mini...");
 

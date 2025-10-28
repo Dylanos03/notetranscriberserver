@@ -35,11 +35,6 @@ export const upload = multer({
   },
 });
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 /**
  * Transcribe audio file using OpenAI Whisper
  * Handler for POST /api/transcribe
@@ -61,6 +56,11 @@ export const transcribeAudio = async (req: Request, res: Response) => {
         message: "OpenAI API key is not configured",
       });
     }
+
+    // Initialize OpenAI client
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     console.log(`Transcribing file: ${req.file.filename} (${req.file.size} bytes)`);
 
