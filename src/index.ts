@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import { transcribeAudio, upload } from "./routes/transcribe";
+import { createNote } from "./routes/createNote";
 
 // Load environment variables
 dotenv.config();
@@ -16,6 +17,9 @@ app.get("/", (_req: Request, res: Response) => {
 
 // Transcribe endpoint
 app.post("/api/transcribe", upload.single("audio"), transcribeAudio);
+
+// Create note endpoint
+app.post("/api/create-note", createNote);
 
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
