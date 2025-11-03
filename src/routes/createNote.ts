@@ -20,27 +20,13 @@ const TITLE_PROMPT = `Based on the following text, generate a concise, descripti
  */
 export const createNote = async (req: Request, res: Response) => {
   try {
-    const { transcription, notionApiKey, notionDatabaseId } = req.body;
+    const { transcription } = req.body;
 
     // Validate required fields
     if (!transcription) {
       return res.status(400).json({
         error: "Missing required field",
         message: "Transcription text is required",
-      });
-    }
-
-    if (!notionApiKey) {
-      return res.status(400).json({
-        error: "Missing required field",
-        message: "Notion API key is required",
-      });
-    }
-
-    if (!notionDatabaseId) {
-      return res.status(400).json({
-        error: "Missing required field",
-        message: "Notion Database ID is required",
       });
     }
 
@@ -88,18 +74,34 @@ export const createNote = async (req: Request, res: Response) => {
 
     console.log(`Creating Notion page with title: "${title}"`);
 
-    // Initialize Notion client with user-provided API key
+    // Check if Notion API key and parent page ID are configured
+    if (!process.env.NOTION_API_KEY) {
+      return res.status(500).json({
+        error: "Server configuration error",
+        message: "Notion API key is not configured",
+      });
+    }
+
+    if (!process.env.NOTION_PARENT_PAGE_ID) {
+      return res.status(500).json({
+        error: "Server configuration error",
+        message: "Notion parent page ID is not configured",
+      });
+    }
+
+    // Initialize Notion client
     const notion = new Client({
-      auth: notionApiKey,
+      auth: process.env.NOTION_API_KEY,
     });
 
-    // Create the page in Notion
+    // Create a standalone page in Notion workspace
+    // The page will be created as a subpage of the parent page specified in env
     const page = await notion.pages.create({
       parent: {
-        database_id: notionDatabaseId,
+        type: "page_id",
+        page_id: process.env.NOTION_PARENT_PAGE_ID,
       },
       properties: {
-        // Title property (most databases have this as "Name" or "Title")
         title: {
           title: [
             {
@@ -109,8 +111,6 @@ export const createNote = async (req: Request, res: Response) => {
             },
           ],
         },
-        // Add timestamp if the database has a "Created" property
-        // This is optional and will be ignored if the property doesn't exist
       },
       children: [
         {
@@ -152,15 +152,15 @@ export const createNote = async (req: Request, res: Response) => {
 
     if (error.code === "object_not_found") {
       return res.status(404).json({
-        error: "Notion database not found",
-        message: "The specified database ID was not found or the integration doesn't have access to it.",
+        error: "Notion page not found",
+        message: "The specified parent page ID was not found or the integration doesn't have access to it.",
       });
     }
 
     if (error.code === "validation_error") {
       return res.status(400).json({
         error: "Notion validation error",
-        message: error.message || "The database structure may not match expected properties.",
+        message: error.message || "Failed to create page. Check that the parent page ID is valid.",
       });
     }
 
